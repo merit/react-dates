@@ -17,6 +17,7 @@ import getTransformStyles from '../utils/getTransformStyles';
 import getCalendarMonthWidth from '../utils/getCalendarMonthWidth';
 import toISOMonthString from '../utils/toISOMonthString';
 import isAfterDay from '../utils/isAfterDay';
+import isBeforeDay from '../utils/isBeforeDay';
 
 import ScrollableOrientationShape from '../shapes/ScrollableOrientationShape';
 import DayOfWeekShape from '../shapes/DayOfWeekShape';
@@ -136,12 +137,18 @@ class CalendarMonthGrid extends React.Component {
     let newMonths = months;
 
     if (hasMonthChanged && !hasNumberOfMonthsChanged) {
-      if (isAfterDay(initialMonth, this.props.initialMonth)) {
-        newMonths = months.slice(1);
-        newMonths.push(months[months.length - 1].clone().add(1, 'month'));
+      if (initialMonth.isAfter(this.props.initialMonth)) {
+        do {
+          var newMonth = newMonths[newMonths.length - 1].clone().add(1, 'month');
+          newMonths = newMonths.slice(1);
+          newMonths.push(newMonth);
+        } while (initialMonth.isSameOrAfter(newMonth))
       } else {
-        newMonths = months.slice(0, months.length - 1);
-        newMonths.unshift(months[0].clone().subtract(1, 'month'));
+        do {
+          var newMonth = newMonths[0].clone().subtract(1, 'month');
+          newMonths = newMonths.slice(0, newMonths.length - 1);
+          newMonths.unshift(newMonth);
+        } while (initialMonth.isSameOrBefore(newMonth))
       }
     }
 

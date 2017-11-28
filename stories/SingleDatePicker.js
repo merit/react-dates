@@ -7,6 +7,7 @@ import {
 } from '../src/constants';
 
 import SingleDatePickerWrapper from '../examples/SingleDatePickerWrapper';
+import SingleDatePicker from '../src/components/SingleDatePicker';
 
 const TestInput = props => (
   <div style={{ marginTop: 16 }} >
@@ -26,11 +27,23 @@ const TestInput = props => (
 
 storiesOf('SingleDatePicker (SDP)', module)
   .addWithInfo('default', () => (
-    <SingleDatePickerWrapper />
+    <SingleDatePickerWrapper
+      numberOfMonths={1}
+      displayFormat="YYYY-MM-DD"
+      placeholder="none"
+    />
+  ))
+  .addWithInfo('sigma', () => (
+    <SingleDatePickerWrapper
+      numberOfMonths={1}
+      hideKeyboardShortcutsPanel
+      displayFormat="YYYY-MM-DD"
+      monthFormat="MMM YYYY"
+    />
   ))
   .addWithInfo('as part of a form', () => (
     <div>
-      <SingleDatePickerWrapper />
+      <SingleDatePickerWrapper numberOfMonths={1} />
       <TestInput placeholder="Input 1" />
       <TestInput placeholder="Input 2" />
       <TestInput placeholder="Input 3" />
@@ -40,6 +53,7 @@ storiesOf('SingleDatePicker (SDP)', module)
     moment.locale('zh-cn');
     return (
       <SingleDatePickerWrapper
+        numberOfMonths={1}
         placeholder="入住日期"
         monthFormat="YYYY[年]MMMM"
         phrases={{
@@ -53,6 +67,7 @@ storiesOf('SingleDatePicker (SDP)', module)
     moment.locale('fa');
     return (
       <SingleDatePickerWrapper
+        numberOfMonths={1}
         placeholder="تقویم فارسی"
         renderMonth={month => momentJalaali(month).format('jMMMM jYYYY')}
         renderDay={day => momentJalaali(day).format('jD')}

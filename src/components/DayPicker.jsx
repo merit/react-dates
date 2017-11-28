@@ -38,6 +38,8 @@ const MONTH_PADDING = 23;
 const DAY_PICKER_PADDING = 9;
 const PREV_TRANSITION = 'prev';
 const NEXT_TRANSITION = 'next';
+const PREV_YEAR_TRANSITION = 'prev-year';
+const NEXT_YEAR_TRANSITION = 'next-year';
 
 const propTypes = forbidExtraProps({
   ...withStylesPropTypes,
@@ -62,6 +64,8 @@ const propTypes = forbidExtraProps({
   navNext: PropTypes.node,
   onPrevMonthClick: PropTypes.func,
   onNextMonthClick: PropTypes.func,
+  onPrevYearClick: PropTypes.func,
+  onNextYearClick: PropTypes.func,
   onMultiplyScrollableMonths: PropTypes.func, // VERTICAL_SCROLLABLE daypickers only
 
   // month props
@@ -108,6 +112,8 @@ export const defaultProps = {
   navNext: null,
   onPrevMonthClick() {},
   onNextMonthClick() {},
+  onPrevYearClick() {},
+  onNextYearClick() {},
   onMultiplyScrollableMonths() {},
 
   // month props
@@ -169,6 +175,8 @@ class DayPicker extends React.Component {
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPrevMonthClick = this.onPrevMonthClick.bind(this);
     this.onNextMonthClick = this.onNextMonthClick.bind(this);
+    this.onPrevYearClick = this.onPrevYearClick.bind(this);
+    this.onNextYearClick = this.onNextYearClick.bind(this);
     this.multiplyScrollableMonths = this.multiplyScrollableMonths.bind(this);
     this.updateStateAfterMonthTransition = this.updateStateAfterMonthTransition.bind(this);
 
@@ -389,6 +397,56 @@ class DayPicker extends React.Component {
     });
   }
 
+  onPrevYearClick(nextFocusedDate, e) {
+    const { numberOfMonths, isRTL } = this.props;
+    const { calendarMonthWidth } = this.state;
+
+    if (e) e.preventDefault();
+
+    let translationValue = (this.isVertical() ? this.calendarMonthHeights[0] : calendarMonthWidth) * 12;
+
+    if (this.isHorizontal()) {
+      if (isRTL) {
+        translationValue = -2 * calendarMonthWidth;
+      }
+
+      const newMonthHeight = Math.max(0, ...this.calendarMonthHeights.slice(0, numberOfMonths));
+      this.adjustDayPickerHeight(newMonthHeight);
+    }
+
+    this.setState({
+      monthTransition: PREV_YEAR_TRANSITION,
+      translationValue,
+      focusedDate: null,
+      nextFocusedDate,
+    });
+  }
+
+  onNextYearClick(nextFocusedDate, e) {
+    const { numberOfMonths, isRTL } = this.props;
+    const { calendarMonthWidth } = this.state;
+
+    if (e) e.preventDefault();
+
+    let translationValue = (this.isVertical() ? -this.calendarMonthHeights[1] : -calendarMonthWidth) * 12;
+
+    if (this.isHorizontal()) {
+      if (isRTL) {
+        translationValue = 2 * calendarMonthWidth;
+      }
+
+      const newMonthHeight = Math.max(0, ...this.calendarMonthHeights.slice(0, numberOfMonths));
+      this.adjustDayPickerHeight(newMonthHeight);
+    }
+
+    this.setState({
+      monthTransition: NEXT_YEAR_TRANSITION,
+      translationValue,
+      focusedDate: null,
+      nextFocusedDate,
+    });
+  }
+
   getFirstVisibleIndex() {
     const { orientation } = this.props;
     const { monthTransition } = this.state;
@@ -494,6 +552,8 @@ class DayPicker extends React.Component {
     const {
       onPrevMonthClick,
       onNextMonthClick,
+      onPrevYearClick,
+      onNextYearClick,
     } = this.props;
 
     const {
@@ -514,6 +574,12 @@ class DayPicker extends React.Component {
     } else if (monthTransition === NEXT_TRANSITION) {
       if (onNextMonthClick) onNextMonthClick();
       newMonth.add(1, 'month');
+    } else if (monthTransition === PREV_YEAR_TRANSITION) {
+      if (onPrevYearClick) onPrevYearClick();
+      newMonth.subtract(12, 'months');
+    } else if (monthTransition === NEXT_YEAR_TRANSITION) {
+      if (onNextYearClick) onNextYearClick();
+      newMonth.add(12, 'months');
     }
 
     let newFocusedDate = null;
@@ -589,6 +655,8 @@ class DayPicker extends React.Component {
       <DayPickerNavigation
         onPrevMonthClick={(e) => { this.onPrevMonthClick(null, e); }}
         onNextMonthClick={onNextMonthClick}
+        onPrevYearClick={(e) => { this.onPrevYearClick(null, e); }}
+        onNextYearClick={(e) => { this.onNextYearClick(null, e); }}
         navPrev={navPrev}
         navNext={navNext}
         orientation={orientation}

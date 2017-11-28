@@ -7,7 +7,9 @@ import { DayPickerNavigationPhrases } from '../defaultPhrases';
 import getPhrasePropTypes from '../utils/getPhrasePropTypes';
 
 import LeftArrow from './LeftArrow';
+import DblLeftArrow from '../svg/arrow-dbl-left.svg';
 import RightArrow from './RightArrow';
+import DblRightArrow from '../svg/arrow-dbl-right.svg';
 import ChevronUp from './ChevronUp';
 import ChevronDown from './ChevronDown';
 import ScrollableOrientationShape from '../shapes/ScrollableOrientationShape';
@@ -24,7 +26,9 @@ const propTypes = forbidExtraProps({
   orientation: ScrollableOrientationShape,
 
   onPrevMonthClick: PropTypes.func,
+  onPrevYearClick: PropTypes.func,
   onNextMonthClick: PropTypes.func,
+  onNextYearClick: PropTypes.func,
 
   // internationalization
   phrases: PropTypes.shape(getPhrasePropTypes(DayPickerNavigationPhrases)),
@@ -39,6 +43,8 @@ const defaultProps = {
 
   onPrevMonthClick() {},
   onNextMonthClick() {},
+  onPrevYearClick() {},
+  onNextYearClick() {},
 
   // internationalization
   phrases: DayPickerNavigationPhrases,
@@ -50,6 +56,8 @@ function DayPickerNavigation({
   navNext,
   onPrevMonthClick,
   onNextMonthClick,
+  onPrevYearClick,
+  onNextYearClick,
   orientation,
   phrases,
   isRTL,
@@ -59,40 +67,40 @@ function DayPickerNavigation({
   const isVertical = orientation !== HORIZONTAL_ORIENTATION;
   const isVerticalScrollable = orientation === VERTICAL_SCROLLABLE;
 
+  let navDblPrevIcon = navPrev;
   let navPrevIcon = navPrev;
   let navNextIcon = navNext;
-  let isDefaultNavPrev = false;
-  let isDefaultNavNext = false;
+  let navDblNextIcon = navNext;
+
+  const styleIcon = (I) => (
+    <I {...css(
+      isHorizontal && styles.DayPickerNavigation_svg__horizontal,
+      isVertical && styles.DayPickerNavigation_svg__vertical)
+    } />
+  );
+
   if (!navPrevIcon) {
     isDefaultNavPrev = true;
-    let Icon = isVertical ? ChevronUp : LeftArrow;
+    PrevIcon = isVertical ? ChevronUp : LeftArrow;
+    DblPrevIcon = isVertical ? ChevronUp : DblLeftArrow;
     if (isRTL && !isVertical) {
-      Icon = RightArrow;
+      PrevIcon = RightArrow;
+      DblPrevIcon = DblRightArrow;
     }
-    navPrevIcon = (
-      <Icon
-        {...css(
-          isHorizontal && styles.DayPickerNavigation_svg__horizontal,
-          isVertical && styles.DayPickerNavigation_svg__vertical,
-        )}
-      />
-    );
+    navPrevIcon = styleIcon(PrevIcon);
+    navDblPrevIcon = styleIcon(DblPrevIcon);
   }
 
   if (!navNextIcon) {
     isDefaultNavNext = true;
-    let Icon = isVertical ? ChevronDown : RightArrow;
+    NextIcon = isVertical ? ChevronDown : RightArrow;
+    DblNextIcon = isVertical ? ChevronDown : DblRightArrow;
     if (isRTL && !isVertical) {
-      Icon = LeftArrow;
+      NextIcon = RightArrow;
+      DblNextIcon = DblRightArrow;
     }
-    navNextIcon = (
-      <Icon
-        {...css(
-          isHorizontal && styles.DayPickerNavigation_svg__horizontal,
-          isVertical && styles.DayPickerNavigation_svg__vertical,
-        )}
-      />
-    );
+    navNextIcon = styleIcon(NextIcon);
+    navDblNextIcon = styleIcon(DblNextIcon);
   }
 
   return (
@@ -104,6 +112,32 @@ function DayPickerNavigation({
         isVerticalScrollable && styles.DayPickerNavigation_container__verticalScrollable,
       )}
     >
+      {!isVerticalScrollable && (
+        <button
+          {...css(
+            styles.DayPickerNavigation_button,
+            isDefaultNavPrev && styles.DayPickerNavigation_button__default,
+            ...(isHorizontal && [
+              styles.DayPickerNavigation_button__horizontal,
+              !isRTL && styles.DayPickerNavigation_leftMostButton__horizontal,
+              isRTL && styles.DayPickerNavigation_rightMostButton__horizontal,
+            ]),
+            ...(isVertical && [
+              styles.DayPickerNavigation_button__vertical,
+              styles.DayPickerNavigation_prevButton__vertical,
+              isDefaultNavPrev && styles.DayPickerNavigation_button__vertical__default,
+            ]),
+          )}
+          type="button"
+          aria-label={phrases.jumpToPrevYear}
+          onClick={onPrevYearClick}
+          onMouseUp={(e) => {
+            e.currentTarget.blur();
+          }}
+        >
+          {navDblPrevIcon}
+        </button>
+      )}
       {!isVerticalScrollable && (
         <button
           {...css(
@@ -157,6 +191,32 @@ function DayPickerNavigation({
       >
         {navNextIcon}
       </button>
+      <button
+        {...css(
+          styles.DayPickerNavigation_button,
+          isDefaultNavNext && styles.DayPickerNavigation_button__default,
+          ...(isHorizontal && [
+            styles.DayPickerNavigation_button__horizontal,
+            isRTL && styles.DayPickerNavigation_leftMostButton__horizontal,
+            !isRTL && styles.DayPickerNavigation_rightMostButton__horizontal,
+          ]),
+          ...(isVertical && [
+            styles.DayPickerNavigation_button__vertical,
+            styles.DayPickerNavigation_nextButton__vertical,
+            isDefaultNavNext && styles.DayPickerNavigation_button__vertical__default,
+            isDefaultNavNext && styles.DayPickerNavigation_nextButton__vertical__default,
+          ]),
+          isVerticalScrollable && styles.DayPickerNavigation_nextButton__verticalScrollable,
+        )}
+        type="button"
+        aria-label={phrases.jumpToNextMonth}
+        onClick={onNextYearClick}
+        onMouseUp={(e) => {
+          e.currentTarget.blur();
+        }}
+      >
+        {navDblNextIcon}
+      </button>
     </div>
   );
 }
@@ -204,6 +264,7 @@ export default withStyles(({ reactDates: { color, zIndex } }) => ({
 
     ':hover': {
       border: `1px solid ${color.core.borderMedium}`,
+      zIndex: 1,
     },
 
     ':active': {
@@ -219,10 +280,17 @@ export default withStyles(({ reactDates: { color, zIndex } }) => ({
   },
 
   DayPickerNavigation_leftButton__horizontal: {
+    left: 60,
+  },
+  DayPickerNavigation_leftMostButton__horizontal: {
     left: 22,
   },
 
+
   DayPickerNavigation_rightButton__horizontal: {
+    right: 60,
+  },
+  DayPickerNavigation_rightMostButton__horizontal: {
     right: 22,
   },
 
